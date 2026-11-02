@@ -1,0 +1,586 @@
+// ============================================================
+// 1. CLASSES — القوالب اللي بنبني منها الأوبجكتات
+// ============================================================
+
+class Product {                                                          // بنعرّف كلاس (قالب) اسمه Product لإنشاء أي منتج
+  constructor(id, name, price, category, stock, emoji) {                 // دالة بتتشغل أوتوماتيك لما نكتب new Product(...)، بتستقبل بيانات المنتج
+    this.id       = id;                                                  // بتحفظ الـ ID جوا الأوبجكت
+    this.name     = name;                                                // بتحفظ اسم المنتج
+    this.price    = Number(price);                                       // بتحفظ السعر وبتحوّله لرقم فعلي عشان يتنفذ عليه حسابات
+    this.category = category;                                            // بتحفظ الكاتيجوري (مثلاً Dairy أو Fruits)
+    this.stock    = Number(stock);                                       // بتحفظ الكمية المتاحة وبتحوّلها لرقم
+    this.emoji    = emoji || "📦";                                       // بتحفظ الإيموجي، لو مش موجود يحط 📦 كـ default
+  }                                                                      // إغلاق الـ constructor
+}                                                                        // إغلاق كلاس Product
+
+class Order {                                                            // كلاس تاني اسمه Order، قالب لإنشاء أي أوردر
+  constructor(id, items, total, date) {                                  // بتستقبل: رقم الأوردر، المنتجات، الإجمالي، التاريخ
+    this.id    = id;                                                     // بيحفظ رقم الأوردر
+    this.items = items;                                                  // بيحفظ قائمة المنتجات اللي في الأوردر
+    this.total = total;                                                  // بيحفظ المبلغ الإجمالي
+    this.date  = date;                                                   // بيحفظ تاريخ الأوردر
+  }                                                                      // إغلاق الـ constructor
+}                                                                        // إغلاق كلاس Order
+
+
+// ============================================================
+// 2. المتغيرات الأساسية
+// ============================================================
+
+let products = [];                                                       // مصفوفة فاضية هتتملى بكل المنتجات — let عشان ممكن تتغير
+let cart     = [];                                                       // مصفوفة فاضية هتتملى بالمنتجات اللي المستخدم حطها في الكارت
+let orders   = [];                                                       // مصفوفة فاضية هتتملى بالأوردرات اللي اتعملت
+
+
+// ============================================================
+// 3. حفظ البيانات في localStorage
+// ============================================================
+
+function saveData() {                                                    // دالة بتحفظ كل البيانات في ذاكرة المتصفح
+  localStorage.setItem("sm_products", JSON.stringify(products));        // بتحوّل مصفوفة المنتجات لـ string وبتحفظها باسم "sm_products"
+  localStorage.setItem("sm_cart",     JSON.stringify(cart));            // نفس الكلام للكارت
+  localStorage.setItem("sm_orders",   JSON.stringify(orders));          // نفس الكلام للأوردرات
+}                                                                        // إغلاق الدالة
+
+
+// ============================================================
+// 4. المنتجات الافتراضية
+// ============================================================
+
+const defaultProducts = [                                                // مصفوفة ثابتة فيها المنتجات اللي بتتحمل لأول مرة
+  new Product("p1",  "Fresh Milk",     1.50, "Dairy",  80,  "🥛"),     // بيعمل أوبجكت منتج جديد بـ new Product (id, name, price, category, stock, emoji)
+  new Product("p2",  "Cheddar Cheese", 3.20, "Dairy",  40,  "🧀"),     // منتج تاني بنفس الطريقة
+  new Product("p3",  "Greek Yogurt",   2.00, "Dairy",  55,  "🍶"),     // منتج تالت
+  new Product("p4",  "Red Apples",     0.99, "Fruits", 120, "🍎"),     // منتج رابع — كاتيجوري Fruits
+  new Product("p5",  "Bananas",        0.75, "Fruits", 90,  "🍌"),     // منتج خامس
+  new Product("p6",  "Strawberries",   2.50, "Fruits", 60,  "🍓"),     // منتج سادس
+  new Product("p7",  "Oranges",        1.20, "Fruits", 70,  "🍊"),     // منتج سابع
+  new Product("p8",  "White Bread",    1.80, "Bakery", 50,  "🍞"),     // منتج ثامن — كاتيجوري Bakery
+  new Product("p9",  "Croissant",      0.90, "Bakery", 35,  "🥐"),     // منتج تاسع
+  new Product("p10", "Bagel",          1.10, "Bakery", 45,  "🥯"),     // منتج عاشر
+  new Product("p11", "Coca Cola 1L",   1.50, "Drinks", 100, "🥤"),     // منتج 11 — كاتيجوري Drinks
+  new Product("p12", "Orange Juice",   2.20, "Drinks", 65,  "🍹"),     // منتج 12
+  new Product("p13", "Water Bottle",   0.50, "Drinks", 200, "💧"),     // منتج 13 — ستوك 200 الأكتر
+  new Product("p14", "Potato Chips",   1.30, "Snacks", 80,  "🍿"),     // منتج 14 — كاتيجوري Snacks
+  new Product("p15", "Chocolate Bar",  0.80, "Snacks", 110, "🍫"),     // منتج 15 — آخر منتج في القائمة
+];                                                                       // إغلاق المصفوفة
+
+
+// ============================================================
+// 5. تحميل البيانات من localStorage
+// ============================================================
+
+function loadData() {                                                    // دالة بتشتغل أول ما الصفحة تفتح عشان تجيب البيانات المحفوظة
+  try {                                                                  // بنبدأ بلوك try عشان لو حصل error ما يوقفش التطبيق
+    const savedProducts = JSON.parse(localStorage.getItem("sm_products")); // بتجيب المنتجات المحفوظة وتحوّلها من string لـ array
+    const savedCart     = JSON.parse(localStorage.getItem("sm_cart"));     // نفس الكلام للكارت
+    const savedOrders   = JSON.parse(localStorage.getItem("sm_orders"));   // نفس الكلام للأوردرات
+
+    if (savedProducts && savedProducts.length > 0) {                    // لو في منتجات محفوظة فعلاً وإنها مش فاضية
+      products = savedProducts;                                          // حمّل البيانات المحفوظة
+    } else {                                                             // لو مفيش بيانات محفوظة
+      products = defaultProducts;                                        // حمّل المنتجات الافتراضية
+      saveData();                                                        // احفظها في localStorage عشان المرة الجاية يلاقيها
+    }                                                                    // إغلاق الـ if/else
+
+    if (savedCart)   cart   = savedCart;                                 // لو في كارت محفوظ، حمّله
+    if (savedOrders) orders = savedOrders;                               // لو في أوردرات محفوظة، حمّلها
+
+  } catch (error) {                                                      // لو أي حاجة فوق وقعت في error، هنيجي هنا
+    console.error("Error loading data:", error);                         // اطبع الـ error في الـ console للمطوّر
+    products = defaultProducts;                                          // ارجع للمنتجات الافتراضية عشان التطبيق ميتكسرش
+    cart = [];                                                           // صفّي الكارت
+    orders = [];                                                         // صفّي الأوردرات
+  }                                                                      // إغلاق الـ catch
+}                                                                        // إغلاق الدالة
+
+
+// ============================================================
+// 6. الكوكيز
+// ============================================================
+
+function setCookie(name, value) {                                        // دالة بتحفظ كوكي باسم وقيمة معينة
+  const date = new Date();                                               // بيعمل أوبجكت للتاريخ الحالي
+  date.setFullYear(date.getFullYear() + 1);                             // بيضيف سنة للتاريخ الحالي عشان الكوكي يفضل سنة
+  document.cookie = name + "=" + value + "; expires=" + date.toUTCString() + "; path=/"; // بيحفظ الكوكي بالاسم والقيمة وتاريخ الانتهاء
+}                                                                        // إغلاق الدالة
+
+function getCookie(name) {                                               // دالة بتجيب قيمة كوكي معين باسمه
+  const cookies = document.cookie.split("; ");                          // بتجيب كل الكوكيز وتقسمها لمصفوفة (كل كوكي عنصر)
+  for (let c of cookies) {                                              // بتلف على كل كوكي واحدة واحدة
+    const parts = c.split("=");                                         // بتقسم الكوكي لجزئين: الاسم والقيمة
+    if (parts[0] === name) return parts[1];                             // لو الاسم اتطابق، ارجع القيمة فوراً
+  }                                                                      // إغلاق الـ for
+  return null;                                                           // لو ملقاش الكوكي، ارجع null
+}                                                                        // إغلاق الدالة
+
+
+// ============================================================
+// 7. تطبيق الثيم واليوزر
+// ============================================================
+
+function applyTheme() {                                                  // دالة بتطبق الثيم المحفوظ (داكن أو فاتح)
+  const theme = getCookie("sm_theme") || "light";                       // بتجيب الثيم المحفوظ، لو مفيش يبقى default هو "light"
+  if (theme === "dark") {                                                // لو الثيم داكن
+    document.body.classList.add("dark");                                 // بيضيف كلاس "dark" على الـ body عشان الـ CSS يطبق الألوان الداكنة
+    document.getElementById("themeBtn").textContent = "☀️ Light Mode";  // بيغير نص الزرار عشان يعرض "Light Mode"
+  } else {                                                               // لو الثيم فاتح
+    document.body.classList.remove("dark");                              // بيشيل كلاس "dark" من الـ body
+    document.getElementById("themeBtn").textContent = "🌙 Dark Mode";   // بيغير نص الزرار عشان يعرض "Dark Mode"
+  }                                                                      // إغلاق الـ if/else
+}                                                                        // إغلاق الدالة
+
+function applyUsername() {                                               // دالة بتعرض اسم المستخدم المحفوظ
+  const name = getCookie("sm_username") || "Guest";                     // بتجيب الاسم من الكوكيز، لو مفيش يبقى "Guest"
+  document.getElementById("userBadge").textContent    = "👤 " + name;  // بيعرض الاسم في الـ badge اللي في الـ header
+  document.getElementById("usernameInput").value = name !== "Guest" ? name : ""; // لو في اسم محفوظ بيحطه في الـ input، لو "Guest" يفضل فاضي
+}                                                                        // إغلاق الدالة
+
+
+// ============================================================
+// 8. الدوال المساعدة
+// ============================================================
+
+function generateId() {                                                  // دالة بتولّد ID فريد لكل منتج أو أوردر
+  return Date.now().toString();                                          // بتستخدم الوقت الحالي بالميلليثانية كـ ID فريد (مستحيل يتكرر)
+}                                                                        // إغلاق الدالة
+
+const showToast = (message, type = "") => {                              // arrow function بتعرض رسالة مؤقتة — type اختياري وافتراضيه string فاضي
+  const toast = document.getElementById("toast");                       // بتجيب عنصر الـ toast من الـ HTML
+  toast.textContent = message;                                          // بتحط الرسالة جواه
+  toast.className   = "toast " + type;                                  // بتحط الكلاس (مثلاً "toast green") لتلوين الرسالة
+  setTimeout(() => { toast.className = "toast hidden"; }, 2500);        // بعد 2.5 ثانية بتخبّي الرسالة بإضافة كلاس "hidden"
+};                                                                       // إغلاق الـ arrow function
+
+const getCartTotal = () => {                                             // arrow function بتحسب إجمالي سعر الكارت
+  return cart.reduce((total, item) => total + (item.price * item.qty), 0); // بتلف على كل عنصر وبتجمع (السعر × الكمية) — الـ 0 هو نقطة البداية
+};                                                                       // إغلاق الدالة
+
+const getCartItemCount = () => {                                         // arrow function بتحسب عدد القطع الكلية في الكارت
+  return cart.reduce((count, item) => count + item.qty, 0);             // بتجمع كميات كل المنتجات مع بعض
+};                                                                       // إغلاق الدالة
+
+function updateCartBadge() {                                             // دالة بتحدّث الـ badge اللي بيوضح كام عنصر في الكارت
+  const count = getCartItemCount();                                      // بتجيب العدد الكلي
+  document.getElementById("cartCount").textContent = "🛒 Cart: " + count + " items"; // بتعرضه في الـ UI
+}                                                                        // إغلاق الدالة
+
+function showError(elementId, message) {                                 // دالة بتعرض رسالة خطأ تحت الـ input
+  const el = document.getElementById(elementId);                        // بتجيب العنصر المطلوب من الـ HTML
+  el.textContent = message;                                             // بتحط الرسالة فيه
+  el.classList.remove("hidden");                                        // بتظهّره (كان مخبي بكلاس "hidden")
+}                                                                        // إغلاق الدالة
+
+const hideError = (elementId) => {                                       // arrow function بتخبّي رسالة الخطأ
+  document.getElementById(elementId).classList.add("hidden");           // بتضيف كلاس "hidden" للعنصر عشان يتخبى
+};                                                                       // إغلاق الدالة
+
+
+// ============================================================
+// 9. Validation — التحقق من البيانات
+// ============================================================
+
+function validateProduct(name, price, category, stock) {                 // دالة بتتحقق من بيانات المنتج قبل ما يتضاف
+  if (!name.trim())           return "Product name is required.";        // لو الاسم فاضي أو فيه مسافات بس، ارجع رسالة خطأ
+  if (name.trim().length < 2) return "Name must be at least 2 characters."; // لو الاسم أقل من حرفين، ارجع خطأ
+  if (!price || price <= 0)   return "Price must be greater than 0.";    // لو السعر فاضي أو صفر أو أقل، ارجع خطأ
+  if (!category)              return "Please select a category.";        // لو مفيش كاتيجوري اتختارت، ارجع خطأ
+  if (!stock || stock < 1)    return "Stock must be at least 1.";        // لو الكمية فاضية أو أقل من 1، ارجع خطأ
+  return null;                                                           // لو كل حاجة تمام، ارجع null (يعني مفيش error)
+}                                                                        // إغلاق الدالة
+
+
+// ============================================================
+// 10. Render Functions — رسم الـ UI
+// ============================================================
+
+function renderProducts(list = products) {                               // دالة بترسم المنتجات — افتراضياً كل المنتجات، ممكن تستقبل قائمة مفلترة
+  const container = document.getElementById("productsList");            // بتجيب الـ div اللي المنتجات هتتحط فيه
+  const countEl   = document.getElementById("productCount");            // بتجيب العنصر اللي بيعرض عدد المنتجات
+
+  countEl.textContent = list.length + " products found";                // بتكتب عدد المنتجات الموجودة
+  if (list.length === 0) {                                              // لو مفيش منتجات
+    container.innerHTML = '<p class="empty-msg">No products found.</p>'; // بتعرض رسالة "No products found"
+    return;                                                              // توقف الدالة هنا
+  }                                                                      // إغلاق الـ if
+
+  container.innerHTML = list.map(product => {                           // بتلف على كل منتج وتحوّله لـ HTML string
+    const outOfStock = product.stock === 0;                             // بتتحقق لو المنتج خلص من المخزن
+    const cardClass  = outOfStock ? "product-card out-of-stock" : "product-card"; // لو خلص تضيف كلاس "out-of-stock" للكارد
+    const btnText    = outOfStock ? "Out of Stock" : "Add to Cart 🛒";  // بتحدد نص الزرار حسب حالة الستوك
+    return `
+      <div class="${cardClass}">
+        <div class="emoji">${product.emoji}</div>
+        <div class="name">${product.name}</div>
+        <div class="price">$${product.price.toFixed(2)}</div>
+        <div class="category">${product.category}</div>
+        <div class="stock">Stock: ${product.stock}</div>
+        <button class="btn-small add-btn" onclick="addToCart('${product.id}')" ${outOfStock ? "disabled" : ""}>${btnText}</button>
+      </div>
+    `;                                                                   // بترجع HTML كارد كامل للمنتج — toFixed(2) عشان السعر يبقى رقمين بعد الفاصلة
+  }).join("");                                                           // بتحول المصفوفة من HTML strings لـ string واحد كبير وتحطه في الـ container
+}                                                                        // إغلاق الدالة
+
+function renderCart() {                                                  // دالة بترسم الكارت في الـ UI
+  const container = document.getElementById("cartItems");               // بتجيب الـ div اللي عناصر الكارت هتتحط فيه
+  const summaryEl = document.getElementById("cartSummary");             // بتجيب الـ div اللي فيه الإجمالي وزرار الـ checkout
+
+  if (cart.length === 0) {                                              // لو الكارت فاضي
+    container.innerHTML = '<p class="empty-msg">Your cart is empty. Add some products!</p>'; // بتعرض رسالة إن الكارت فاضي
+    summaryEl.classList.add("hidden");                                   // بتخبّي الـ summary عشان مفيش حاجة يعرضها
+    return;                                                              // توقف الدالة هنا
+  }                                                                      // إغلاق الـ if
+
+  container.innerHTML = cart.map(item => `
+    <div class="cart-item">
+      <span style="font-size:1.5rem">${item.emoji}</span>
+      <span class="ci-name">${item.name}</span>
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="changeQty('${item.id}', -1)">−</button>
+        <span>${item.qty}</span>
+        <button class="qty-btn" onclick="changeQty('${item.id}', +1)">+</button>
+      </div>
+      <span class="ci-price">$${(item.price * item.qty).toFixed(2)}</span>
+      <button class="btn-small btn-red" onclick="removeFromCart('${item.id}')">🗑️</button>
+    </div>
+  `).join("");                                                           // بتلف على كل عنصر في الكارت وتعمله HTML row — فيه إيموجي واسم وأزرار كمية وسعر وزرار حذف
+
+  summaryEl.classList.remove("hidden");                                  // بتظهّر الـ summary لأن في عناصر في الكارت
+  document.getElementById("totalItems").textContent = getCartItemCount(); // بتعرض إجمالي عدد القطع
+  document.getElementById("totalPrice").textContent = "$" + getCartTotal().toFixed(2); // بتعرض إجمالي السعر
+}                                                                        // إغلاق الدالة
+
+function renderOrders() {                                                // دالة بترسم الأوردرات في الـ UI
+  const container = document.getElementById("ordersList");              // بتجيب الـ div اللي الأوردرات هتتحط فيه
+  const countEl   = document.getElementById("orderCount");              // بتجيب العنصر اللي بيعرض عدد الأوردرات
+
+  countEl.textContent = orders.length + " orders";                      // بتعرض عدد الأوردرات
+
+  if (orders.length === 0) {                                            // لو مفيش أوردرات
+    container.innerHTML = '<p class="empty-msg">No orders yet. Go shopping!</p>'; // بتعرض رسالة تشجيع للتسوق
+    return;                                                              // توقف الدالة هنا
+  }                                                                      // إغلاق الـ if
+
+  container.innerHTML = orders.slice().reverse().map(order => {         // slice() بتعمل نسخة عشان ما نغيرش الأصلية — reverse() عشان الأحدث يبان أول
+    const itemsList = order.items.map(i => `${i.emoji} ${i.name} x${i.qty}`).join(", "); // بتحوّل قائمة المنتجات لـ string (مثلاً: 🥛 Fresh Milk x2, 🍎 Red Apples x1)
+    return `
+      <div class="order-card">
+        <div class="order-header">
+          <span class="order-id">Order #${order.id}</span>
+          <span class="order-date">${order.date}</span>
+          <span class="order-total">Total: $${order.total.toFixed(2)}</span>
+        </div>
+        <div class="order-items">${itemsList}</div>
+      </div>
+    `;                                                                   // بتعمل HTML كارد للأوردر فيه الرقم والتاريخ والإجمالي وقائمة المنتجات
+  }).join("");                                                           // بتحول كل الـ HTML strings لـ string واحد
+}                                                                        // إغلاق الدالة
+
+function renderAdminProducts() {                                         // دالة بترسم المنتجات في تاب الـ Admin عشان يقدر يحذف منها
+  const container = document.getElementById("adminProductsList");       // بتجيب الـ div الخاص بالـ admin
+
+  if (products.length === 0) {                                          // لو مفيش منتجات
+    container.innerHTML = '<p class="empty-msg">No products added yet.</p>'; // بتعرض رسالة إن مفيش منتجات
+    return;                                                              // توقف الدالة هنا
+  }                                                                      // إغلاق الـ if
+
+  container.innerHTML = products.map(p => `
+    <div class="cart-item">
+      <span>${p.emoji} <strong>${p.name}</strong></span>
+      <span style="color:var(--accent)">$${p.price.toFixed(2)}</span>
+      <span style="color:var(--text2)">${p.category}</span>
+      <span style="color:var(--text2)">Stock: ${p.stock}</span>
+      <button class="btn-small btn-red" onclick="deleteProduct('${p.id}')">🗑️ Delete</button>
+    </div>
+  `).join("");                                                           // بتعمل row لكل منتج فيه الاسم والسعر والكاتيجوري والكمية وزرار الحذف
+}                                                                        // إغلاق الدالة
+
+
+// ============================================================
+// 11. إضافة وحذف المنتجات (Admin)
+// ============================================================
+
+function addProduct() {                                                  // دالة بتضيف منتج جديد من فورم الـ admin
+  try {                                                                  // بنبدأ بـ try عشان لو حصل error ما يوقفش التطبيق
+    const name     = document.getElementById("prodName").value;         // بتجيب اسم المنتج من الـ input
+    const price    = document.getElementById("prodPrice").value;        // بتجيب السعر
+    const category = document.getElementById("prodCategory").value;     // بتجيب الكاتيجوري
+    const stock    = document.getElementById("prodStock").value;        // بتجيب الكمية
+    const emoji    = document.getElementById("prodEmoji").value || "📦"; // بتجيب الإيموجي، لو فاضي يحط 📦
+
+    const error = validateProduct(name, price, category, stock);        // بتشغّل دالة الـ validation للتحقق من البيانات
+    if (error) {                                                         // لو في error
+      showError("adminError", "⚠️ " + error);                           // بتعرض رسالة الخطأ للمستخدم
+      return;                                                            // توقف الدالة هنا بدون إضافة
+    }                                                                    // إغلاق الـ if
+    hideError("adminError");                                             // لو مفيش error، تخبّي رسالة الخطأ لو كانت ظاهرة
+
+    const newProduct = new Product(generateId(), name.trim(), price, category, stock, emoji); // بتعمل أوبجكت منتج جديد بـ ID فريد والبيانات
+    products.push(newProduct);                                           // بتضيف المنتج الجديد لمصفوفة المنتجات
+    saveData();                                                          // بتحفظ كل البيانات في الـ localStorage
+
+    renderProducts();                                                    // بتحدّث عرض المنتجات في تاب الشوب
+    renderAdminProducts();                                               // بتحدّث عرض المنتجات في تاب الـ admin
+
+    showToast("✅ " + newProduct.name + " added!", "green");             // بتعرض رسالة نجاح للمستخدم
+
+    document.getElementById("prodName").value     = "";                 // بتصفّي خانة الاسم بعد الإضافة
+    document.getElementById("prodPrice").value    = "";                 // بتصفّي خانة السعر
+    document.getElementById("prodCategory").value = "";                 // بتصفّي خانة الكاتيجوري
+    document.getElementById("prodStock").value    = "";                 // بتصفّي خانة الكمية
+    document.getElementById("prodEmoji").value    = "";                 // بتصفّي خانة الإيموجي
+
+  } catch (error) {                                                      // لو حصل أي error غير متوقع
+    console.error("addProduct error:", error);                           // بيطبع الـ error في الـ console للمطوّر
+    showToast("❌ Something went wrong!", "red");                        // بيعرض رسالة خطأ للمستخدم
+  }                                                                      // إغلاق الـ catch
+}                                                                        // إغلاق الدالة
+
+function deleteProduct(id) {                                             // دالة بتحذف منتج بالـ ID بتاعه
+  try {                                                                  // بنبدأ بـ try
+    const product = products.find(p => p.id === id);                    // بتدور على المنتج في المصفوفة
+    if (!product) throw new Error("Product not found");                  // لو ملقاهوش، برمي error عشان الـ catch يمسكه
+
+    products = products.filter(p => p.id !== id);                       // بتعمل مصفوفة جديدة فيها كل المنتجات ماعدا اللي اتحذف
+    saveData();                                                          // بتحفظ البيانات الجديدة
+
+    renderProducts();                                                    // بتحدّث عرض المنتجات في الشوب
+    renderAdminProducts();                                               // بتحدّث عرض المنتجات في الـ admin
+
+    showToast("🗑️ " + product.name + " deleted.", "red");               // بتعرض رسالة حذف
+
+  } catch (error) {                                                      // لو حصل error
+    console.error("deleteProduct error:", error);                        // اطبعه في الـ console
+    showToast("❌ Could not delete product.", "red");                    // عرض رسالة خطأ للمستخدم
+  }                                                                      // إغلاق الـ catch
+}                                                                        // إغلاق الدالة
+
+
+// ============================================================
+// 12. إضافة للكارت وتعديل الكميات
+// ============================================================
+
+function addToCart(productId) {                                          // دالة بتضيف منتج للكارت لما المستخدم يضغط "Add to Cart"
+  try {                                                                  // بنبدأ بـ try
+    const product = products.find(p => p.id === productId);             // بتدور على المنتج في مصفوفة المنتجات
+    if (!product) throw new Error("Product not found");                  // لو ملقاهوش، برمي error
+
+    if (product.stock === 0) {                                           // لو المنتج خلص من المخزن
+      showToast("❌ Out of stock!", "red");                              // عرض رسالة للمستخدم
+      return;                                                            // وقف بدون إضافة
+    }                                                                    // إغلاق الـ if
+
+    const existingItem = cart.find(item => item.id === productId);      // بتتحقق لو المنتج موجود في الكارت فعلاً
+
+    if (existingItem) {                                                  // لو المنتج موجود في الكارت
+      existingItem.qty++;                                                // بتزوّد كميته بـ 1
+    } else {                                                             // لو المنتج مش موجود في الكارت
+      cart.push({ id: product.id, name: product.name, price: product.price, emoji: product.emoji, qty: 1 }); // بتضيفه للكارت بكمية 1
+    }                                                                    // إغلاق الـ if/else
+
+    product.stock--;                                                     // بتنقص الكمية المتاحة في المنتج بـ 1
+    saveData();                                                          // بتحفظ البيانات
+
+    renderProducts();                                                    // بتحدّث عرض المنتجات عشان الستوك يتحدث
+    renderCart();                                                        // بتحدّث عرض الكارت
+    updateCartBadge();                                                   // بتحدّث الـ badge اللي بيوضح عدد عناصر الكارت
+
+    showToast("✅ " + product.name + " added to cart!", "green");        // بتعرض رسالة نجاح
+
+  } catch (error) {                                                      // لو حصل error
+    console.error("addToCart error:", error);                            // اطبعه في الـ console
+    showToast("❌ Could not add to cart.", "red");                       // عرض رسالة خطأ
+  }                                                                      // إغلاق الـ catch
+}                                                                        // إغلاق الدالة
+
+function changeQty(itemId, change) {                                     // دالة بتغير كمية عنصر في الكارت — change بتكون +1 أو -1
+  const item    = cart.find(i => i.i === itemId);                       // بتدور على العنصر في الكارت
+  const product = products.find(p => p.id === itemId);                  // بتدور على المنتج الأصلي عشان تعدّل الستوك
+  if (!item || !product) return;                                         // لو مش موجود، توقف
+
+  if (change === +1) {                                                   // لو الطلب زيادة بـ +1
+    if (product.stock === 0) {                                           // لو الستوك خلص
+      showToast("❌ No more stock!", "red");                             // عرض رسالة
+      return;                                                            // وقف بدون زيادة
+    }                                                                    // إغلاق الـ if
+    item.qty++;                                                          // زوّد الكمية في الكارت
+    product.stock--;                                                     // نقص الستوك
+  } else if (change === -1) {                                            // لو الطلب تنقيص بـ -1
+    item.qty--;                                                          // نقص الكمية في الكارت
+    product.stock++;                                                     // زوّد الستوك (رجّع القطعة للمخزن)
+    if (item.qty === 0) {                                                // لو الكمية وصلت لصفر
+      cart = cart.filter(i => i.id !== itemId);                         // شيله من الكارت خالص بـ filter
+    }                                                                    // إغلاق الـ if
+  }                                                                      // إغلاق الـ if/else
+
+  saveData();                                                            // بيحفظ البيانات
+  renderProducts();                                                      // بيحدّث عرض المنتجات
+  renderCart();                                                          // بيحدّث عرض الكارت
+  updateCartBadge();                                                     // بيحدّث الـ badge
+}                                                                        // إغلاق الدالة
+
+function removeFromCart(itemId) {                                        // دالة بتحذف عنصر من الكارت بالكامل
+  const item    = cart.find(i => i.id === itemId);                      // بتدور على العنصر في الكارت
+  const product = products.find(p => p.id === itemId);                  // بتدور على المنتج الأصلي عشان ترجع الستوك
+  if (!item) return;                                                     // لو العنصر مش موجود في الكارت، توقف
+
+  if (product) product.stock += item.qty;                               // بترجع كل الكمية للستوك (مش بس واحدة)
+  cart = cart.filter(i => i.id !== itemId);                             // بتعمل كارت جديد بدون العنصر ده
+
+  saveData();                                                            // بتحفظ البيانات
+  renderProducts();                                                      // بتحدّث عرض المنتجات
+  renderCart();                                                          // بتحدّث عرض الكارت
+  updateCartBadge();                                                     // بتحدّث الـ badge
+
+  showToast("🗑️ Item removed.", "red");                                 // بتعرض رسالة حذف
+}                                                                        // إغلاق الدالة
+
+
+// ============================================================
+// 13. Checkout وتفريغ الكارت
+// ============================================================
+
+function checkout() {                                                    // دالة بتعمل الطلب وتحوّل الكارت لأوردر
+  try {                                                                  // بنبدأ بـ try
+
+    const total = getCartTotal();                                        // احسب الإجمالي
+    const date  = new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); // اعمل تاريخ منسق (مثلاً: May 16, 2026, 09:30 AM)
+
+    const newOrder = new Order(generateId(), [...cart], total, date);   // اعمل أوبجكت أوردر — [...cart] بتعمل نسخة من الكارت عشان ما يتأثرش لو الكارت اتغير
+    orders.push(newOrder);                                               // بتضيف الأوردر الجديد لقائمة الأوردرات
+    cart = [];                                                           // بتفضّي الكارت بعد ما الأوردر اتسجّل
+
+    saveData();                                                          // بتحفظ البيانات
+    renderCart();                                                        // بتحدّث عرض الكارت (هيبقى فاضي)
+    renderOrders();                                                      // بتحدّث عرض الأوردرات (هيظهر الأوردر الجديد)
+    updateCartBadge();                                                   // بتحدّث الـ badge (هيبقى صفر)
+
+    showToast("🎉 Order placed successfully!", "green");                 // بتعرض رسالة نجاح
+
+  } catch (error) {                                                      // لو حصل error
+    console.error("checkout error:", error);                             // اطبعه في الـ console
+    showToast("❌ Checkout failed.", "red");                             // عرض رسالة خطأ
+  }                                                                      // إغلاق الـ catch
+}                                                                        // إغلاق الدالة
+
+function clearCart() {                                                   // دالة بتفضّي الكارت كله
+  if (cart.length === 0) { showToast("Cart is already empty!", "red"); return; } // لو الكارت فاضي فعلاً، عرض رسالة وتوقف
+  if (!confirm("Clear all items from cart?")) return;                   // بتاخد تأكيد من المستخدم — لو قال "Cancel" توقف
+
+  cart.forEach(item => {                                                 // بتلف على كل عنصر في الكارت
+    const product = products.find(p => p.id === item.id);               // بتدور على المنتج الأصلي
+    if (product) product.stock += item.qty;                             // بترجع كميته للستوك
+  });                                                                    // إغلاق الـ forEach
+
+  cart = [];                                                             // بتفضّي الكارت
+  saveData();                                                            // بتحفظ البيانات
+  renderProducts();                                                      // بتحدّث عرض المنتجات (الستوك رجع)
+  renderCart();                                                          // بتحدّث عرض الكارت (هيبقى فاضي)
+  updateCartBadge();                                                     // بتحدّث الـ badge
+
+  showToast("🗑️ Cart cleared.", "red");                                 // بتعرض رسالة إن الكارت اتفضى
+}                                                                        // إغلاق الدالة
+
+
+// ============================================================
+// 14. الإعدادات
+// ============================================================
+
+function saveUsername() {                                                // دالة بتحفظ اسم المستخدم
+  const name = document.getElementById("usernameInput").value.trim();   // بتجيب الاسم من الـ input وتشيل المسافات
+  if (!name) { showToast("⚠️ Please enter your name.", "red"); return; } // لو الاسم فاضي، عرض رسالة خطأ وتوقف
+
+  setCookie("sm_username", name);                                        // بتحفظ الاسم في الكوكيز
+  applyUsername();                                                       // بتحدّث الـ badge في الـ header بالاسم الجديد
+
+  const msg = document.getElementById("settingsMsg");                   // بتجيب عنصر رسالة الـ settings
+  msg.textContent = "✅ Name saved!";                                    // بتحط الرسالة فيه
+  msg.classList.remove("hidden");                                        // بتظهّره
+  setTimeout(() => msg.classList.add("hidden"), 3000);                  // بعد 3 ثواني بتخبّيه تاني
+
+  showToast("✅ Name saved!", "green");                                  // بتعرض Toast رسالة نجاح
+}                                                                        // إغلاق الدالة
+
+function clearAllData() {                                                // دالة بتحذف كل البيانات من كل حتة
+  if (!confirm("Delete ALL data?")) return;                              // بتاخد تأكيد من المستخدم
+
+  products = []; cart = []; orders = [];                                 // بتصفّي كل المتغيرات في الذاكرة
+
+  localStorage.removeItem("sm_products");                                // بتمسح بيانات المنتجات من الـ localStorage
+  localStorage.removeItem("sm_cart");                                    // بتمسح بيانات الكارت
+  localStorage.removeItem("sm_orders");                                  // بتمسح بيانات الأوردرات
+
+  renderProducts();                                                      // بتحدّث عرض المنتجات (هيبقى فاضي)
+  renderCart();                                                          // بتحدّث عرض الكارت (هيبقى فاضي)
+  renderOrders();                                                        // بتحدّث عرض الأوردرات (هيبقى فاضي)
+  renderAdminProducts();                                                 // بتحدّث عرض الـ admin (هيبقى فاضي)
+  updateCartBadge();                                                     // بتحدّث الـ badge (هيبقى صفر)
+  showToast("🗑️ All data cleared.", "red");                             // بتعرض رسالة إن كل البيانات اتمسحت
+}                                                                        // إغلاق الدالة
+
+
+// ============================================================
+// 15. Event Listeners — ربط الأحداث بالعناصر
+// ============================================================
+
+document.addEventListener("DOMContentLoaded", () => {                   // بيستنى لحد ما الصفحة تتحمل كلها الأول قبل ما يشتغل
+
+  loadData();                                                            // بيحمّل البيانات المحفوظة
+  applyTheme();                                                          // بيطبق الثيم المحفوظ
+  applyUsername();                                                       // بيعرض اسم المستخدم
+
+  renderProducts();                                                      // بيرسم المنتجات
+  renderCart();                                                          // بيرسم الكارت
+  renderOrders();                                                        // بيرسم الأوردرات
+  renderAdminProducts();                                                 // بيرسم منتجات الـ admin
+  updateCartBadge();                                                     // بيحدّث الـ badge
+
+  document.querySelectorAll(".tab-btn").forEach(btn => {                 // بيجيب كل أزرار التابات ويلف عليهم
+    btn.addEventListener("click", () => {                                // بيضيف click listener لكل زرار
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); // بيشيل كلاس "active" من كل الأزرار
+      document.querySelectorAll(".tab").forEach(t => { t.classList.remove("active"); t.classList.add("hidden"); }); // بيخبّي كل التابات
+      btn.classList.add("active");                                       // بيضيف "active" للزرار اللي اتضغط عليه
+      const tab = document.getElementById("tab-" + btn.dataset.tab);    // بيجيب التاب المناسب للزرار
+      if (tab) { tab.classList.remove("hidden"); tab.classList.add("active"); } // بيوضّح التاب المختار
+    });                                                                  // إغلاق الـ click listener
+  });                                                                    // إغلاق الـ forEach
+
+  document.getElementById("themeBtn").addEventListener("click", () => { // بيضيف click listener لزرار الثيم
+    const newTheme = document.body.classList.contains("dark") ? "light" : "dark"; // بيتحقق إيه الثيم الحالي ويعكسه
+    document.body.classList.toggle("dark");                              // بيبدّل كلاس "dark" على الـ body
+    setCookie("sm_theme", newTheme);                                     // بيحفظ الثيم الجديد في الكوكيز
+    document.getElementById("themeBtn").textContent = newTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"; // بيغير نص الزرار
+    showToast(newTheme === "dark" ? "🌙 Dark mode on" : "☀️ Light mode on"); // بيعرض رسالة إن الثيم اتغير
+  });                                                                    // إغلاق الـ click listener
+
+  document.getElementById("addProductBtn").addEventListener("click", addProduct);  // لما زرار الإضافة يتضغط، شغّل addProduct
+  document.getElementById("checkoutBtn").addEventListener("click", checkout);      // لما زرار الـ checkout يتضغط، شغّل checkout
+  document.getElementById("clearCartBtn").addEventListener("click", clearCart);    // لما زرار تفريغ الكارت يتضغط، شغّل clearCart
+  document.getElementById("saveNameBtn").addEventListener("click", saveUsername);  // لما زرار حفظ الاسم يتضغط، شغّل saveUsername
+  document.getElementById("clearAllBtn").addEventListener("click", clearAllData);  // لما زرار مسح كل البيانات يتضغط، شغّل clearAllData
+
+  document.getElementById("searchInput").addEventListener("input", filterProducts);   // كل ما المستخدم يكتب حرف في البحث، شغّل filterProducts فوراً
+  document.getElementById("categoryFilter").addEventListener("change", filterProducts); // لو المستخدم غير الكاتيجوري، شغّل filterProducts
+
+  document.getElementById("usernameInput").addEventListener("keydown", (e) => {    // بيضيف keydown listener لـ input الاسم
+    if (e.key === "Enter") saveUsername();                               // لو ضغط Enter، شغّل saveUsername بدون ما يضغط الزرار
+  });                                                                    // إغلاق الـ listener
+
+  document.addEventListener("keydown", (e) => {                         // بيضيف keydown listener على كل الصفحة
+    if (e.key === "Escape") console.log("Escape pressed");              // لو المستخدم ضغط Escape في أي مكان، يطبع في الـ console (ممكن يتطور لإغلاق مودال)
+  });                                                                    // إغلاق الـ listener
+
+  function filterProducts() {                                           // دالة بتفلتر المنتجات حسب البحث والكاتيجوري
+    const searchText = document.getElementById("searchInput").value.toLowerCase().trim(); // بتجيب نص البحث وتحوّله لحروف صغيرة وتشيل المسافات
+    const category   = document.getElementById("categoryFilter").value; // بتجيب الكاتيجوري المختارة
+
+    const filtered = products.filter(p => {                             // بتفلتر المنتجات — بترجع بس اللي بيعدوا الشرطين
+      const matchSearch   = p.name.toLowerCase().includes(searchText);  // بتتحقق لو اسم المنتج فيه نص البحث
+      const matchCategory = category ? p.category === category : true;  // لو في كاتيجوري مختارة بتتحقق منها — لو مفيش، كل الكاتيجوريز تعدي
+      return matchSearch && matchCategory;                               // المنتج يعدي بس لو الشرطين صح مع بعض
+    });                                                                  // إغلاق الـ filter
+
+    renderProducts(filtered);                                            // بترسم المنتجات المفلترة بس في الـ UI
+  }                                                                      // إغلاق الدالة filterProducts
+
+});                                                                      // إغلاق الـ DOMContentLoaded

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QuickMart - Supermarket</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+  <!-- =============================================
+       HEADER
+       ============================================= -->
+  <header>
+    <h1>🛒 QuickMart</h1>
+
+    <!-- Outline 10: live counter يتحدث كل ما تضيف للكارت -->
+    <div id="cartCount">🛒 Cart: 0 items</div>
+
+    <!-- Outline 7: اسم المستخدم من الكوكي -->
+    <div id="userBadge">👤 Guest</div>
+
+    <!-- Outline 7: زرار تغيير الثيم يتحفظ في كوكي -->
+    <button id="themeBtn">🌙 Dark Mode</button>
+  </header>
+
+  <!-- =============================================
+       NAVIGATION TABS
+       ============================================= -->
+  <nav>
+    <button class="tab-btn active" data-tab="products">🏪 Products</button>
+    <button class="tab-btn" data-tab="cart">🛒 My Cart</button>
+    <button class="tab-btn" data-tab="orders">📦 Orders</button>
+    <button class="tab-btn" data-tab="admin">⚙️ Admin</button>
+    <button class="tab-btn" data-tab="settings">👤 Settings</button>
+  </nav>
+
+  <!-- =============================================
+       TOAST MESSAGE (Outline 10: user feedback)
+       ============================================= -->
+  <div id="toast" class="toast hidden"></div>
+
+  <main>
+
+    <!-- ==========================================
+         TAB 1: PRODUCTS
+         ========================================== -->
+    <div id="tab-products" class="tab active">
+      <h2>Available Products</h2>
+
+      <!-- Search bar (Outline 4: input event) -->
+      <input type="text" id="searchInput" class="input" placeholder="🔍 Search products..." />
+
+      <!-- Category filter (Outline 8: conditional logic) -->
+      <select id="categoryFilter" class="input">
+        <option value="">All Categories</option>
+        <option value="Fruits">Fruits</option>
+        <option value="Dairy">Dairy</option>
+        <option value="Bakery">Bakery</option>
+        <option value="Drinks">Drinks</option>
+        <option value="Snacks">Snacks</option>
+      </select>
+
+      <!-- Outline 10: live counter -->
+      <p id="productCount" class="count-text">0 products</p>
+
+      <!-- Outline 3: المنتجات بتتعرض هنا ديناميكياً -->
+      <div id="productsList"></div>
+    </div>
+
+    <!-- ==========================================
+         TAB 2: CART
+         ========================================== -->
+    <div id="tab-cart" class="tab hidden">
+      <h2>🛒 My Cart</h2>
+
+      <!-- Outline 3: الكارت بيتبني ديناميكياً -->
+      <div id="cartItems"></div>
+
+      <!-- Outline 10: Live summary -->
+      <div id="cartSummary" class="summary-box hidden">
+        <p>Total Items: <strong id="totalItems">0</strong></p>
+        <p>Total Price: <strong id="totalPrice">$0</strong></p>
+        <button id="checkoutBtn" class="btn-green">✅ Checkout</button>
+        <button id="clearCartBtn" class="btn-red">🗑️ Clear Cart</button>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         TAB 3: ORDERS
+         ========================================== -->
+    <div id="tab-orders" class="tab hidden">
+      <h2>📦 My Orders</h2>
+      <p id="orderCount" class="count-text">0 orders</p>
+
+      <!-- Outline 3: الأوردرات بتتعرض هنا ديناميكياً -->
+      <div id="ordersList"></div>
+    </div>
+
+    <!-- ==========================================
+         TAB 4: ADMIN - إضافة منتجات
+         ========================================== -->
+    <div id="tab-admin" class="tab hidden">
+      <h2>⚙️ Admin — Add Product</h2>
+
+      <!-- Outline 8: Validation - كل الفيلدز مطلوبة -->
+      <div class="form-box">
+
+        <label>Product Name *</label>
+        <input type="text" id="prodName" class="input" placeholder="e.g. Fresh Milk" />
+
+        <label>Price ($) *</label>
+        <input type="number" id="prodPrice" class="input" placeholder="e.g. 2.50" min="0" />
+
+        <label>Category *</label>
+        <select id="prodCategory" class="input">
+          <option value="">-- Select --</option>
+          <option value="Fruits">🍎 Fruits</option>
+          <option value="Dairy">🥛 Dairy</option>
+          <option value="Bakery">🍞 Bakery</option>
+          <option value="Drinks">🥤 Drinks</option>
+          <option value="Snacks">🍿 Snacks</option>
+        </select>
+
+        <label>Stock (quantity) *</label>
+        <input type="number" id="prodStock" class="input" placeholder="e.g. 100" min="1" />
+
+        <label>Emoji Icon</label>
+        <input type="text" id="prodEmoji" class="input" placeholder="e.g. 🥛" maxlength="2" />
+
+        <!-- Outline 8: رسالة الخطأ بتتعرض هنا -->
+        <p id="adminError" class="error hidden"></p>
+
+        <!-- Outline 4: click event listener -->
+        <button id="addProductBtn" class="btn-blue">➕ Add Product</button>
+      </div>
+
+      <!-- قايمة المنتجات الموجودة للحذف -->
+      <h3>Manage Products</h3>
+      <div id="adminProductsList"></div>
+    </div>
+
+    <!-- ==========================================
+         TAB 5: SETTINGS
+         ========================================== -->
+    <div id="tab-settings" class="tab hidden">
+      <h2>👤 Settings</h2>
+
+      <div class="form-box">
+        <label>Your Name (saved in Cookie)</label>
+        <!-- Outline 7: الاسم بيتحفظ في cookie -->
+        <input type="text" id="usernameInput" class="input" placeholder="Enter your name..." />
+
+        <button id="saveNameBtn" class="btn-blue">💾 Save Name</button>
+        <p id="settingsMsg" class="success hidden"></p>
+      </div>
+
+      <div class="form-box danger">
+        <h3>⚠️ Danger Zone</h3>
+        <p>Delete all data from localStorage</p>
+        <button id="clearAllBtn" class="btn-red">🗑️ Clear All Data</button>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

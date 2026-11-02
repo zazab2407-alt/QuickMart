@@ -1,0 +1,382 @@
+/* =============================================
+   QuickMart Supermarket — style.css
+   ============================================= */
+
+/* CSS Variables للثيمات (Outline 7: theme cookie) */
+:root {
+  --bg: #f5f5f5;
+  --bg2: #ffffff;
+  --text: #222222;
+  --text2: #666666;
+  --border: #dddddd;
+  --accent: #2563eb;
+  --accent2: #16a34a;
+  --danger: #dc2626;
+  --shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Dark theme */
+body.dark {
+  --bg: #111827;
+  --bg2: #1f2937;
+  --text: #f9fafb;
+  --text2: #9ca3af;
+  --border: #374151;
+  --shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* Reset */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+}
+
+/* =============================================
+   HEADER
+   ============================================= */
+header {
+  background: var(--accent);
+  color: white;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+header h1 { font-size: 1.5rem; flex: 1; }
+
+#cartCount {
+  background: white;
+  color: var(--accent);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+#userBadge {
+  background: rgba(255,255,255,0.2);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+#themeBtn {
+  background: white;
+  color: var(--accent);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+#themeBtn:hover { opacity: 0.85; }
+
+/* =============================================
+   NAV TABS
+   ============================================= */
+nav {
+  background: var(--bg2);
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  gap: 4px;
+  padding: 10px 16px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.tab-btn:hover { background: var(--bg); color: var(--text); }
+.tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* =============================================
+   MAIN
+   ============================================= */
+main { padding: 24px; max-width: 1100px; margin: 0 auto; }
+
+.tab { display: none; }
+.tab.active { display: block; }
+.tab.hidden { display: none; }
+
+h2 { margin-bottom: 20px; font-size: 1.4rem; }
+h3 { margin: 20px 0 12px; font-size: 1.1rem; }
+
+/* =============================================
+   INPUTS
+   ============================================= */
+.input {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg2);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+.input:focus { outline: none; border-color: var(--accent); }
+
+/* Search & filter في نفس السطر */
+#searchInput { max-width: 300px; display: inline-block; width: auto; margin-right: 10px; }
+#categoryFilter { max-width: 180px; display: inline-block; width: auto; }
+
+/* =============================================
+   BUTTONS
+   ============================================= */
+.btn-blue {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-top: 4px;
+}
+.btn-blue:hover { opacity: 0.85; }
+
+.btn-green {
+  background: var(--accent2);
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-right: 10px;
+}
+.btn-green:hover { opacity: 0.85; }
+
+.btn-red {
+  background: var(--danger);
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+.btn-red:hover { opacity: 0.85; }
+
+.btn-small {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: bold;
+}
+
+/* =============================================
+   PRODUCT CARDS
+   ============================================= */
+#productsList, #adminProductsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.product-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s;
+}
+.product-card:hover { transform: translateY(-3px); }
+
+.product-card .emoji { font-size: 2.5rem; margin-bottom: 8px; }
+.product-card .name { font-weight: bold; font-size: 1rem; margin-bottom: 4px; }
+.product-card .price { color: var(--accent); font-weight: bold; font-size: 1.1rem; }
+.product-card .category { color: var(--text2); font-size: 0.78rem; margin: 4px 0; }
+.product-card .stock { color: var(--text2); font-size: 0.78rem; margin-bottom: 12px; }
+
+.product-card .add-btn {
+  background: var(--accent);
+  color: white;
+  width: 100%;
+}
+
+/* Out of stock */
+.out-of-stock { opacity: 0.5; }
+.out-of-stock .add-btn { background: #999; cursor: not-allowed; }
+
+/* =============================================
+   CART
+   ============================================= */
+#cartItems { margin-bottom: 20px; }
+
+.cart-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.cart-item .ci-name { flex: 1; font-weight: bold; }
+.cart-item .ci-price { color: var(--accent); font-weight: bold; }
+
+.qty-controls { display: flex; align-items: center; gap: 8px; }
+.qty-controls span { font-weight: bold; min-width: 20px; text-align: center; }
+.qty-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.empty-msg {
+  text-align: center;
+  color: var(--text2);
+  padding: 40px;
+  font-size: 1rem;
+}
+
+/* =============================================
+   CART SUMMARY
+   ============================================= */
+.summary-box {
+  background: var(--bg2);
+  border: 2px solid var(--accent2);
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 350px;
+}
+.summary-box p { margin-bottom: 10px; font-size: 1rem; }
+.summary-box strong { color: var(--accent); }
+
+/* =============================================
+   ORDERS
+   ============================================= */
+.order-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.order-card .order-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.order-card .order-id { font-weight: bold; color: var(--accent); }
+.order-card .order-date { color: var(--text2); font-size: 0.85rem; }
+.order-card .order-total { font-weight: bold; color: var(--accent2); font-size: 1.05rem; }
+.order-items { color: var(--text2); font-size: 0.88rem; line-height: 1.6; }
+
+/* =============================================
+   FORM BOX (Admin & Settings)
+   ============================================= */
+.form-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  max-width: 480px;
+  margin-bottom: 24px;
+}
+.form-box label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: bold;
+  color: var(--text2);
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.form-box.danger { border-color: var(--danger); }
+.form-box.danger h3 { color: var(--danger); margin-bottom: 8px; }
+.form-box.danger p { color: var(--text2); font-size: 0.88rem; margin-bottom: 14px; }
+
+/* =============================================
+   MESSAGES
+   ============================================= */
+.error {
+  color: var(--danger);
+  background: #fef2f2;
+  border-left: 3px solid var(--danger);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+body.dark .error { background: #3b0000; }
+
+.success {
+  color: var(--accent2);
+  background: #f0fdf4;
+  border-left: 3px solid var(--accent2);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-top: 10px;
+}
+body.dark .success { background: #052e16; }
+
+.hidden { display: none !important; }
+
+.count-text {
+  color: var(--text2);
+  font-size: 0.85rem;
+  margin: 10px 0 4px;
+}
+
+/* =============================================
+   TOAST
+   ============================================= */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1f2937;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  z-index: 999;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.toast.green { background: var(--accent2); }
+.toast.red   { background: var(--danger); }
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 600px) {
+  header { gap: 10px; }
+  #searchInput, #categoryFilter { width: 100%; display: block; }
+  main { padding: 14px; }
+}
